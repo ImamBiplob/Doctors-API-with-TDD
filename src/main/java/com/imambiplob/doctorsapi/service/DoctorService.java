@@ -4,6 +4,8 @@ import com.imambiplob.doctorsapi.entity.Doctor;
 import com.imambiplob.doctorsapi.repository.DoctorRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class DoctorService {
 
@@ -23,6 +25,10 @@ public class DoctorService {
 
     public Doctor saveDoctor(Doctor doctor) {
         return doctorRepository.save(doctor);
+    }
+
+    public List<Doctor> getDoctors() {
+        return doctorRepository.findAll();
     }
 
     public Doctor getDoctor(Long id) {

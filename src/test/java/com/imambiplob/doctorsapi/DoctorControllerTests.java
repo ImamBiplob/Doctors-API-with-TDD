@@ -12,8 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,6 +43,10 @@ public class DoctorControllerTests {
     @BeforeEach
     void setup(){
         doctorRepository.deleteAll();
+        educationRepository.deleteAll();
+        experienceRepository.deleteAll();
+        specialityRepository.deleteAll();
+        trainingRepository.deleteAll();
     }
 
     @Test
@@ -74,5 +80,25 @@ public class DoctorControllerTests {
 
         response.andDo(print()).
                 andExpect(status().isCreated());
+    }
+
+    @Test
+    public void getListOfDoctorsTest() throws Exception {
+        List<Doctor> doctorList = new ArrayList<>();
+
+        Speciality speciality1 = Speciality.builder().name("Neurology").build();
+        List<Speciality> specialities1 = List.of(specialityRepository.save(speciality1));
+        doctorList.add(Doctor.builder().title("Dr.").name("Monir").bmdcNumber("abc123").doctorType(DoctorType.valueOf("MEDICAL")).speciality(specialities1).build());
+
+        Speciality speciality2 = Speciality.builder().name("Heart").build();
+        List<Speciality> specialities2 = List.of(specialityRepository.save(speciality2));
+        doctorList.add(Doctor.builder().title("Dr.").name("Jahed").bmdcNumber("def123").doctorType(DoctorType.valueOf("MEDICAL")).speciality(specialities2).build());
+
+        doctorRepository.saveAll(doctorList);
+
+        ResultActions response = mockMvc.perform(get("/api/doctors"));
+
+        response.andExpect(status().isOk())
+                .andDo(print());
     }
 }

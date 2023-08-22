@@ -5,6 +5,8 @@ import com.imambiplob.doctorsapi.service.DoctorService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/doctors")
 public class DoctorController {
@@ -19,5 +21,10 @@ public class DoctorController {
     @ResponseStatus(HttpStatus.CREATED)
     public Doctor addDoctor(@RequestBody Doctor doctor) {
         return doctorService.saveDoctor(doctor);
+    }
+
+    @GetMapping
+    public List<Doctor> getDoctors() {
+        return doctorService.getDoctors();
     }
 }
