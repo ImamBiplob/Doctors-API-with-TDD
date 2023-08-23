@@ -32,6 +32,36 @@ public class DoctorService {
     }
 
     public Doctor getDoctor(Long id) {
-        return doctorRepository.findById(id).get();
+        Doctor doctor = null;
+        if(doctorRepository.findById(id).isPresent())
+            doctor = doctorRepository.findById(id).get();
+
+        return doctor;
+    }
+
+    public Doctor updateDoctor(long id, Doctor doctor) {
+        Doctor savedDoctor = null;
+        if(doctorRepository.findById(id).isPresent()) {
+            savedDoctor = doctorRepository.findById(id).get();
+            savedDoctor.setName(doctor.getName());
+            savedDoctor.setDoctorType(doctor.getDoctorType());
+            savedDoctor.setBmdcNumber(doctor.getBmdcNumber());
+            savedDoctor.setTitle(doctor.getTitle());
+            savedDoctor.setTrainings(doctor.getTrainings());
+            savedDoctor.setEducations(doctor.getEducations());
+            savedDoctor.setSpeciality(doctor.getSpeciality());
+            savedDoctor.setExperiences(doctor.getExperiences());
+        }
+
+        return savedDoctor;
+    }
+
+    public Doctor deleteDoctor(long id) {
+        Doctor doctor = null;
+        if(doctorRepository.findById(id).isPresent()) {
+            doctor = doctorRepository.findById(id).get();
+            doctorRepository.deleteById(id);
+        }
+        return doctor;
     }
 }

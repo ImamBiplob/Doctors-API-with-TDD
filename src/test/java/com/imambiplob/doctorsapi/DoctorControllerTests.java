@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.imambiplob.doctorsapi.entity.*;
 import com.imambiplob.doctorsapi.repository.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,9 +16,10 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.hamcrest.CoreMatchers.is;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -50,6 +52,7 @@ public class DoctorControllerTests {
     }
 
     @Test
+    @DisplayName("Test For Successful POST Operation")
     public void saveDoctorTest() throws Exception {
         Speciality speciality = Speciality.builder().name("Neurology").build();
         List<Speciality> specialities = List.of(specialityRepository.save(speciality));
@@ -83,6 +86,7 @@ public class DoctorControllerTests {
     }
 
     @Test
+    @DisplayName("Test For Getting DoctorList With Success")
     public void getListOfDoctorsTest() throws Exception {
         List<Doctor> doctorList = new ArrayList<>();
 
@@ -101,4 +105,154 @@ public class DoctorControllerTests {
         response.andExpect(status().isOk())
                 .andDo(print());
     }
+
+    @Test
+    @DisplayName("Test For Getting Doctor With Success")
+    public void getDoctorOfSpecificId() throws Exception {
+        Speciality speciality = Speciality.builder().name("Neurology").build();
+        List<Speciality> specialities = List.of(specialityRepository.save(speciality));
+
+        Doctor doctor = Doctor.builder()
+                .name("Monir")
+                .title("Dr.")
+                .bmdcNumber("abc123")
+                .doctorType(DoctorType.valueOf("MEDICAL"))
+                .speciality(specialities)
+                .build();
+        doctorRepository.save(doctor);
+
+        ResultActions response = mockMvc.perform(get("/api/doctors/{id}", doctor.getId()));
+
+        response.andExpect(status().isOk())           // This test will pass if doctor with given id found
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("Test For Getting Doctor With Not Found")
+    public void getDoctorOfInvalidId() throws Exception {
+        Speciality speciality = Speciality.builder().name("Neurology").build();
+        List<Speciality> specialities = List.of(specialityRepository.save(speciality));
+
+        Doctor doctor = Doctor.builder()
+                .name("Monir")
+                .title("Dr.")
+                .bmdcNumber("abc123")
+                .doctorType(DoctorType.valueOf("MEDICAL"))
+                .speciality(specialities)
+                .build();
+        doctorRepository.save(doctor);
+
+        ResultActions response = mockMvc.perform(get("/api/doctors/{id}", 100000L));
+
+        response.andExpect(status().isNotFound())   // This test will pass if doctor with given id not found
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("Test For Updating Doctor With Success")
+    public void getUpdatedDoctorWithGivenUpdatedDoctor() throws Exception {
+        Speciality speciality = Speciality.builder().name("Neurology").build();
+        List<Speciality> specialities = List.of(specialityRepository.save(speciality));
+
+        Doctor savedDoctor = Doctor.builder()
+                .name("Monir")
+                .title("Dr.")
+                .bmdcNumber("abc123")
+                .doctorType(DoctorType.valueOf("MEDICAL"))
+                .speciality(specialities)
+                .build();
+        doctorRepository.save(savedDoctor);
+
+        Doctor updatedDoctor = Doctor.builder()
+                .name("Mahfuz")
+                .title("Dr.")
+                .bmdcNumber("abc123")
+                .doctorType(DoctorType.valueOf("MEDICAL"))
+                .speciality(specialities)
+                .build();
+
+        ResultActions response = mockMvc.perform(put("/api/doctors/{id}", savedDoctor.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updatedDoctor)));
+
+        response.andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(jsonPath("$.name", is(updatedDoctor.getName())));
+
+    }
+
+    @Test
+    @DisplayName("Test For Updating Doctor With Not Found")
+    public void getUpdatedDoctorWithGivenInvalidUpdatedDoctor() throws Exception {
+        Speciality speciality = Speciality.builder().name("Neurology").build();
+        List<Speciality> specialities = List.of(specialityRepository.save(speciality));
+
+        Doctor savedDoctor = Doctor.builder()
+                .name("Monir")
+                .title("Dr.")
+                .bmdcNumber("abc123")
+                .doctorType(DoctorType.valueOf("MEDICAL"))
+                .speciality(specialities)
+                .build();
+        doctorRepository.save(savedDoctor);
+
+        Doctor updatedDoctor = Doctor.builder()
+                .name("Mahfuz")
+                .title("Dr.")
+                .bmdcNumber("abc123")
+                .doctorType(DoctorType.valueOf("MEDICAL"))
+                .speciality(specialities)
+                .build();
+
+        ResultActions response = mockMvc.perform(put("/api/doctors/{id}", 100L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updatedDoctor)));
+
+        response.andExpect(status().isNotFound())
+                .andDo(print());
+
+    }
+
+    @Test
+    @DisplayName("Test For Successful Delete Operation")
+    public void performDeleteDoctor() throws Exception {
+        Speciality speciality = Speciality.builder().name("Neurology").build();
+        List<Speciality> specialities = List.of(specialityRepository.save(speciality));
+
+        Doctor doctor = Doctor.builder()
+                .name("Monir")
+                .title("Dr.")
+                .bmdcNumber("abc123")
+                .doctorType(DoctorType.valueOf("MEDICAL"))
+                .speciality(specialities)
+                .build();
+        doctorRepository.save(doctor);
+
+        ResultActions response = mockMvc.perform(delete("/api/doctors/{id}", doctor.getId()));
+
+        response.andExpect(status().isOk())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("Test For Invalid Delete Operation")
+    public void performDeleteDoctorWithNotFound() throws Exception {
+        Speciality speciality = Speciality.builder().name("Neurology").build();
+        List<Speciality> specialities = List.of(specialityRepository.save(speciality));
+
+        Doctor doctor = Doctor.builder()
+                .name("Monir")
+                .title("Dr.")
+                .bmdcNumber("abc123")
+                .doctorType(DoctorType.valueOf("MEDICAL"))
+                .speciality(specialities)
+                .build();
+        doctorRepository.save(doctor);
+
+        ResultActions response = mockMvc.perform(delete("/api/doctors/{id}", 10000L));
+
+        response.andExpect(status().isNotFound())
+                .andDo(print());
+    }
+
 }
